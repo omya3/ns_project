@@ -1,13 +1,29 @@
-
 <?php
 session_start();
 
-// Restrict access to logged-in users
 if (!isset($_SESSION['username'])) {
-    header('Location: login.php'); // Redirect to login page if not logged in
+    header('Location: login.php');
     exit();
 }
-?> 
+
+// Database connection
+$DATABASE_HOST = 'localhost';
+$DATABASE_USER = 'root';
+$DATABASE_PASS = '';
+$DATABASE_NAME = 'time_pass';
+$con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
+
+if (mysqli_connect_errno()) {
+    exit('Failed to connect to MySQL: ' . mysqli_connect_error());
+}
+
+// Fetch user details
+$query = "SELECT * FROM user WHERE username='" . $_SESSION['username']."'";
+$result = mysqli_query($con, $query);
+$user = mysqli_fetch_assoc($result);
+
+mysqli_close($con);
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,12 +35,30 @@ if (!isset($_SESSION['username'])) {
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container mt-5 text-center">
+    <div class="container mt-5">
         <h1>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-        <p>Your current balance is: <strong>Rs. <?php echo htmlspecialchars($_SESSION['balance']); ?></strong></p>
+
+        <!-- Display user's profile -->
+        <div class="card mb-4">
+        <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top" alt="Profile Image">
+    <h5 class="card-title">Username: <?php echo !empty($user['username']) ? htmlspecialchars($user['username']) : 'Placeholder Username'; ?></h5>
+    <p class="card-text">Email: <?php echo !empty($user['email']) ? htmlspecialchars($user['email']) : 'Placeholder Email'; ?></p>
+    <p class="card-text">Biography: <?php echo !empty($user['biography']) ? htmlspecialchars($user['biography']) : 'No biography available. Maybe you can update it :)'; ?></p>
+    <p class="card-text">Balance: Rs. <?php echo !empty($user['balance']) ? htmlspecialchars($user['balance']) : '0.00'; ?></p>
+</div>
+
+        </div>
+
+        <!-- Buttons for profile management -->
+        <div class="text-center">
+            <a href="update_profile.php" class="btn btn-primary mx-2">Update Profile</a>
+            <a href="view_profiles.php" class="btn btn-success mx-2">View Profiles</a>
+        </div>
 
         <!-- Logout Button -->
-        <a href="logout.php" class="btn btn-danger mt-3">Logout</a>
+        <div class="text-center mt-3">
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
     </div>
 </body>
 </html>
