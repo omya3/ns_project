@@ -1,0 +1,53 @@
+<?php
+session_start();
+
+// Database connection
+$DATABASE_HOST = 'localhost';
+$DATABASE_USER = 'root';
+$DATABASE_PASS = '';
+$DATABASE_NAME = 'time_pass';
+$con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
+
+if (mysqli_connect_errno()) {
+    exit('Failed to connect to MySQL: ' . mysqli_connect_error());
+}
+
+// Handle registration
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize and validate input
+    $username = mysqli_real_escape_string($con, trim($_POST['username']));
+    $email = mysqli_real_escape_string($con, trim($_POST['email']));
+    $password = trim($_POST['password']);
+
+    // Check if any field is empty
+    if (empty($username) || empty($email) || empty($password)) {
+        header('Location: register.php?status=error&message=' . urlencode('All fields are required.'));
+        exit();
+    }
+
+    // Check if username or email already exists
+    $check_user_query = "SELECT * FROM user WHERE username='$username' OR email='$email'";
+    $result = mysqli_query($con, $check_user_query);
+
+    if (mysqli_num_rows($result) > 0) {
+        header('Location: register.php?status=error&message=' . urlencode('Username or Email already exists.'));
+        exit();
+    }
+
+    // Hash the password securely
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert new user into the database
+    $query = "INSERT INTO user (username, email, password) VALUES ('$username', '$email', '$hashed_password')";
+    if (mysqli_query($con, $query)) {
+        header('Location: register.php?status=success'); // Redirect with success message
+        exit();
+    } else {
+        header('Location: register.php?status=error&message=' . urlencode('Error registering user.'));
+        exit();
+    }
+}
+
+// Close database connection
+mysqli_close($con);
+?>

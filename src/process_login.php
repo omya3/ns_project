@@ -1,0 +1,58 @@
+<?php
+session_start();
+
+// Database connection
+$DATABASE_HOST = 'localhost';
+$DATABASE_USER = 'root';
+$DATABASE_PASS = '';
+$DATABASE_NAME = 'time_pass';
+$con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
+
+if (mysqli_connect_errno()) {
+    exit('Failed to connect to MySQL: ' . mysqli_connect_error());
+}
+
+// Handle login
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize input
+    $username = mysqli_real_escape_string($con, trim($_POST['username']));
+    $password = trim($_POST['password']);
+
+    // Check if fields are empty
+    if (empty($username) || empty($password)) {
+        header('Location: login.php?status=error&message=' . urlencode('All fields are required.'));
+        exit();
+    }
+
+    // Fetch user from database
+    $query = "SELECT * FROM user WHERE username='$username'";
+    $result = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($result) === 1) {
+        $user = mysqli_fetch_assoc($result);
+
+        // Verify password
+        if (password_verify($password, $user['password'])) {
+            // Set session variables
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['balance'] = $user['balance'];
+            // echo $_SESSION
+            // Redirect to home page
+            header('Location: home.php');
+            // echo "Hello";
+            exit();
+        } else {
+            // Invalid password
+            header('Location: login.php?status=error&message=' . urlencode('Invalid password.'));
+            exit();
+        }
+    } else {
+        // User not found
+        header('Location: login.php?status=error&message=' . urlencode('User not found.'));
+        exit();
+    }
+}
+
+// Close database connection
+mysqli_close($con);
+?>
