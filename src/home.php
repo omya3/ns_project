@@ -43,12 +43,12 @@ mysqli_close($con);
         <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top" alt="Profile Image">
     <h5 class="card-title">Username: <?php echo !empty($user['username']) ? htmlspecialchars($user['username']) : 'Placeholder Username'; ?></h5>
     <p class="card-text">Email: <?php echo !empty($user['email']) ? htmlspecialchars($user['email']) : 'Placeholder Email'; ?></p>
-    <p class="card-text">Biography: <?php echo !empty($user['biography']) ? htmlspecialchars($user['biography']) : 'No biography available. Maybe you can update it :)'; ?></p>
+    <p class="card-text">Biography: <?php echo !empty($user['biography']) ? htmlspecialchars($user['biography'] ?? '') : 'No biography available. Maybe you can update it :)'; ?></p>
     <p class="card-text">Balance: Rs. <?php echo !empty($user['balance']) ? htmlspecialchars($user['balance']) : '0.00'; ?></p>
 </div>
 
         </div>
-
+        <br>
         <!-- Buttons for profile management -->
         <div class="text-center">
             <a href="update_profile.php" class="btn btn-primary mx-2">Update Profile</a>
@@ -60,5 +60,6 @@ mysqli_close($con);
             <a href="logout.php" class="btn btn-danger">Logout</a>
         </div>
     </div>
+    <br>
 </body>
 </html>

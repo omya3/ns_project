@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 session_start();
 
 if (!isset($_SESSION['username'])) {
@@ -35,8 +39,14 @@ mysqli_close($con);
 </head>
 <body>
     <div class="container mt-5">
+        <!-- Navigation Links -->
+        <div class="mt-4 d-flex justify-content-between">
+            <a href="home.php" class="btn btn-secondary">Go to Home</a>
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
+        <br>
         <h2>View Profiles</h2>
-
+        <br>
         <!-- Search bar -->
         <form method="GET">
             <div class="input-group mb-3">
@@ -50,10 +60,10 @@ mysqli_close($con);
             <?php while ($user = mysqli_fetch_assoc($result)): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="<?php echo $user['profile_image']; ?>" class="card-img-top" alt="Profile Image">
-                        <div class="card-body">
+                    <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
+                    <div class="card-body">
                             <h5 class="card-title"><?php echo $user['username']; ?></h5>
-                            <p class="card-text"><?php echo $user['biography']; ?></p>
+                            <p class="card-text"><?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ') ; ?></p>
                             <a href="view_profile.php?username=<?php echo $user['username']; ?>" class="btn btn-primary">View Profile</a>
                         </div>
                     </div>
@@ -72,10 +82,10 @@ mysqli_close($con);
                     <?php while ($search_user = mysqli_fetch_assoc($search_result)): ?>
                         <div class="col-md-4 mb-4">
                             <div class="card">
-                                <img src="<?php echo $search_user['profile_image']; ?>" class="card-img-top" alt="Profile Image">
-                                <div class="card-body">
+                            <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
+                            <div class="card-body">
                                     <h5 class="card-title"><?php echo $search_user['username']; ?></h5>
-                                    <p class="card-text"><?php echo $search_user['biography']; ?></p>
+                                    <p class="card-text"><?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ') ; ?></p>
                                     <a href="view_profile.php?username=<?php echo $search_user['username']; ?>" class="btn btn-primary">View Profile</a>
                                 </div>
                             </div>

@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 session_start();
 
 if (!isset($_SESSION['username'])) {
@@ -37,14 +40,20 @@ mysqli_close($con);
 </head>
 <body>
     <div class="container mt-5">
+        <div class="mt-4 d-flex justify-content-between">
+            <a href="home.php" class="btn btn-secondary">Go to Home</a>
+            <a href="view_profiles.php" class="btn btn-success mx-2">Back to profiles</a>
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
+        <br>
         <h2>Profile of <?php echo $user['username']; ?></h2>
 
         <div class="card">
             <!-- Resize profile image -->
-            <img src="<?php echo $user['profile_image']; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
+            <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
             <div class="card-body">
                 <h5 class="card-title">Username: <?php echo $user['username']; ?></h5>
-                <p class="card-text">Biography: <?php echo $user['biography']; ?></p>
+                <p class="card-text">Biography: <?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ');?></p>
             </div>
         </div>
     </div>

@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 session_start();
 
 if (!isset($_SESSION['username'])) {
@@ -51,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate image type
         if ($image_type == "image/jpeg" || $image_type == "image/png") {
             // Move uploaded image to a secure directory
-            $upload_dir = '/opt/lampp/htdocs/ns_project/src/uploads/';
+            $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/ns_project/src/uploads/' ;
             $image_path = 'uploads/' . $image_name; // Store relative path
             if (move_uploaded_file($image_tmp, $upload_dir . $image_name)) {
                 // Update database with relative image path
@@ -90,6 +94,13 @@ mysqli_close($con);
     <div class="container mt-5">
         <h2>Update Profile</h2>
 
+         <!-- Navigation Links -->
+         <div class="mt-4 d-flex justify-content-between">
+            <a href="home.php" class="btn btn-secondary">Go to Home</a>
+            <a href="logout.php" class="btn btn-danger">Logout</a>
+        </div>
+        <br>
+
         <!-- Feedback Message -->
         <?php if (!empty($feedback_message)): ?>
             <div class="alert alert-<?php echo htmlspecialchars($message_type); ?> alert-dismissible fade show" role="alert">
@@ -107,7 +118,7 @@ mysqli_close($con);
 
             <div class="mb-3">
                 <label for="biography" class="form-label">Biography:</label>
-                <textarea class="form-control" id="biography" name="biography" rows="5"><?php echo htmlspecialchars($user['biography']); ?></textarea>
+                <textarea class="form-control" id="biography" name="biography" rows="5"><?php echo htmlspecialchars($user['biography'] ?? ''); ?></textarea>
             </div>
 
             <div class="mb-3">
@@ -118,11 +129,7 @@ mysqli_close($con);
             <button type="submit" class="btn btn-primary w-100">Update Profile</button>
         </form>
 
-        <!-- Navigation Links -->
-        <div class="mt-4 d-flex justify-content-between">
-            <a href="home.php" class="btn btn-secondary">Go to Home</a>
-            <a href="logout.php" class="btn btn-danger">Logout</a>
-        </div>
+       
     </div>
 
     <!-- Bootstrap JS -->
