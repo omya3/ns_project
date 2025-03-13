@@ -1,3 +1,10 @@
+<?php
+
+session_start();
+$csrf_token = bin2hex(random_bytes(32));
+$_SESSION['csrf_token'] = $csrf_token;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +38,8 @@
                 <label for="password" class="form-label">Password:</label>
                 <input type="password" class="form-control" id="password" name="password" required placeholder='Enter your password'>
             </div>
+
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>

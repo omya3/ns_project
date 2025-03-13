@@ -3,12 +3,18 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+
+// Set secure cookie parameters before starting the session
+session_set_cookie_params(0, '/', '', true, true);
+
 session_start();
 
 if (!isset($_SESSION['username'])) {
     header('Location: login.php');
     exit();
 }
+
+
 
 // Database connection
 $DATABASE_HOST = 'localhost';
@@ -22,9 +28,11 @@ if (mysqli_connect_errno()) {
 }
 
 // Fetch user details
-$query = "SELECT * FROM user WHERE username='" . $_SESSION['username'] . "'";
-$result = mysqli_query($con, $query);
-$user = mysqli_fetch_assoc($result);
+$stmt = $con->prepare("SELECT * FROM user WHERE username=?");
+$stmt->bind_param("s", $_SESSION['username']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
 
 // Initialize feedback message
 $feedback_message = "";
@@ -32,16 +40,27 @@ $message_type = ""; // success or danger
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $biography = $_POST['biography'];
+    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo $_POST['csrf_token'];
+        echo '<br>';
+        echo $_SESSION['csrf_token'];
+        echo '<br>';
+        echo "Invalid request!";
+        exit();
+    }
+    $csrf_token = $_SESSION['csrf_token'];
+    
+    $email = trim($_POST['email']);
+    $biography = trim($_POST['biography']);
 
-    // Update user details
-    $query = "UPDATE user SET email='$email', biography='$biography' WHERE username='" . $_SESSION['username'] . "'";
-    if (mysqli_query($con, $query)) {
+    // Update user details using prepared statements
+    $stmt = $con->prepare("UPDATE user SET email=?, biography=? WHERE username=?");
+    $stmt->bind_param("sss", $email, $biography, $_SESSION['username']);
+    if ($stmt->execute()) {
         $feedback_message .= "Profile updated successfully!\n";
         $message_type = "success";
     } else {
-        $feedback_message .= "Error updating profile: " . mysqli_error($con) . "\n";
+        $feedback_message .= "Error updating profile: " . $con->error . "\n";
         $message_type = "danger";
     }
 
@@ -58,13 +77,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/ns_project/src/uploads/' ;
             $image_path = 'uploads/' . $image_name; // Store relative path
             if (move_uploaded_file($image_tmp, $upload_dir . $image_name)) {
-                // Update database with relative image path
-                $query = "UPDATE user SET profile_image='$image_path' WHERE username='" . $_SESSION['username'] . "'";
-                if (mysqli_query($con, $query)) {
+                // Update database with relative image path using prepared statements
+                $stmt = $con->prepare("UPDATE user SET profile_image=? WHERE username=?");
+                $stmt->bind_param("ss", $image_path, $_SESSION['username']);
+                if ($stmt->execute()) {
                     $feedback_message .= "Profile image updated successfully!\n";
                     $message_type = "success";
                 } else {
-                    $feedback_message .= "Error updating profile image: " . mysqli_error($con) . "\n";
+                    $feedback_message .= "Error updating profile image: " . $con->error . "\n";
                     $message_type = "danger";
                 }
             } else {
@@ -76,6 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "danger";
         }
     }
+}
+else{
+// Generate CSRF token
+$csrf_token = bin2hex(random_bytes(32));
+$_SESSION['csrf_token'] = $csrf_token;
 }
 
 mysqli_close($con);
@@ -127,6 +152,8 @@ mysqli_close($con);
                 <label for="profile_image" class="form-label">Profile Image:</label>
                 <input type="file" class="form-control" id="profile_image" name="profile_image">
             </div>
+
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
             <button type="submit" class="btn btn-primary w-100">Update Profile</button>
         </form>
