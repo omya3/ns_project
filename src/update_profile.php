@@ -97,6 +97,8 @@ mysqli_close($con);
          <!-- Navigation Links -->
          <div class="mt-4 d-flex justify-content-between">
             <a href="home.php" class="btn btn-secondary">Go to Home</a>
+            <a href="view_profiles.php" class="btn btn-success mx-2">View Profiles</a>
+            <a href="transfer_money.php" class="btn btn-warning mx-2">Transfer Money</a>
             <a href="logout.php" class="btn btn-danger">Logout</a>
         </div>
         <br>
