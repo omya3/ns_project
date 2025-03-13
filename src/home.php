@@ -53,6 +53,7 @@ mysqli_close($con);
         <div class="text-center">
             <a href="update_profile.php" class="btn btn-primary mx-2">Update Profile</a>
             <a href="view_profiles.php" class="btn btn-success mx-2">View Profiles</a>
+            <a href="transfer_money.php" class="btn btn-warning mx-2">Transfer Money</a>
         </div>
 
         <!-- Logout Button -->
