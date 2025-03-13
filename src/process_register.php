@@ -3,6 +3,9 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+// Set secure cookie parameters before starting the session
+session_set_cookie_params(0, '/', '', true, true);
+
 session_start();
 
 // Database connection
@@ -18,6 +21,12 @@ if (mysqli_connect_errno()) {
 
 // Handle registration
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo "Invalid request!";
+        exit();
+    }
+    
     // Sanitize and validate input
     $username = mysqli_real_escape_string($con, trim($_POST['username']));
     $email = mysqli_real_escape_string($con, trim($_POST['email']));
@@ -41,9 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Hash the password securely
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-    // Insert new user into the database
-    $query = "INSERT INTO user (username, email, password) VALUES ('$username', '$email', '$hashed_password')";
-    if (mysqli_query($con, $query)) {
+    // Insert new user into the database using prepared statements
+    $stmt = $con->prepare("INSERT INTO user (username, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $email, $hashed_password);
+    if ($stmt->execute()) {
         header('Location: register.php?status=success'); // Redirect with success message
         exit();
     } else {

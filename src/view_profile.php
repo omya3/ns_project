@@ -2,6 +2,7 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
+
 session_start();
 
 if (!isset($_SESSION['username'])) {
@@ -20,11 +21,13 @@ if (mysqli_connect_errno()) {
     exit('Failed to connect to MySQL: ' . mysqli_connect_error());
 }
 
-// Fetch user details based on user_id
+// Fetch user details using prepared statements
 $user_id = $_GET['username'];
-$query = "SELECT * FROM user WHERE username='" . $user_id . "'";
-$result = mysqli_query($con, $query);
-$user = mysqli_fetch_assoc($result);
+$stmt = $con->prepare("SELECT * FROM user WHERE username=?");
+$stmt->bind_param("s", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
 
 mysqli_close($con);
 ?>
@@ -47,13 +50,13 @@ mysqli_close($con);
             <a href="logout.php" class="btn btn-danger">Logout</a>
         </div>
         <br>
-        <h2>Profile of <?php echo $user['username']; ?></h2>
+        <h2>Profile of <?php echo htmlspecialchars($user['username']); ?></h2>
 
         <div class="card">
             <!-- Resize profile image -->
             <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
             <div class="card-body">
-                <h5 class="card-title">Username: <?php echo $user['username']; ?></h5>
+                <h5 class="card-title">Username: <?php echo htmlspecialchars($user['username']); ?></h5>
                 <p class="card-text">Biography: <?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ');?></p>
             </div>
         </div>

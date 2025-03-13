@@ -3,12 +3,16 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+// Set secure cookie parameters before starting the session
+session_set_cookie_params(0, '/', '', true, true);
+
 session_start();
 
 if (!isset($_SESSION['username'])) {
     header('Location: login.php');
     exit();
 }
+
 
 // Database connection
 $DATABASE_HOST = 'localhost';
@@ -25,33 +29,56 @@ if (mysqli_connect_errno()) {
 $success_messages = [];
 $error_messages = [];
 
+
+
 // Handle money transfer
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $recipient_id = mysqli_real_escape_string($con, trim($_POST['recipient_id']));
+    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo $_POST['csrf_token'];
+        echo '<br>';
+        echo $_SESSION['csrf_token'];
+        echo '<br>';
+        echo "Invalid request!";
+        exit();
+    }
+
+    $recipient_id = trim($_POST['recipient_id']);
     $amount = floatval($_POST['amount']);
-    $comment = mysqli_real_escape_string($con, trim($_POST['comment']));
+    $comment = trim($_POST['comment']);
 
-    // Fetch sender details
-    $sender_query = "SELECT * FROM user WHERE username='" . $_SESSION['username'] . "'";
-    $sender_result = mysqli_query($con, $sender_query);
-    $sender = mysqli_fetch_assoc($sender_result);
+    // Fetch sender details using prepared statements
+    $stmt = $con->prepare("SELECT * FROM user WHERE username=?");
+    $stmt->bind_param("s", $_SESSION['username']);
+    $stmt->execute();
+    $sender_result = $stmt->get_result();
+    $sender = $sender_result->fetch_assoc();
 
-    // Fetch recipient details
-    $recipient_query = "SELECT * FROM user WHERE username='$recipient_id'";
-    $recipient_result = mysqli_query($con, $recipient_query);
+    // Fetch recipient details using prepared statements
+    $stmt = $con->prepare("SELECT * FROM user WHERE username=?");
+    $stmt->bind_param("s", $recipient_id);
+    $stmt->execute();
+    $recipient_result = $stmt->get_result();
 
-    if (mysqli_num_rows($recipient_result) === 0) {
+    if ($recipient_result->num_rows === 0) {
         $error_messages[] = "Recipient not found.";
     } else {
-        $recipient = mysqli_fetch_assoc($recipient_result);
+        $recipient = $recipient_result->fetch_assoc();
 
         // Check if sender has enough balance
         if ($sender['balance'] >= $amount && $amount > 0) {
-            // Deduct amount from sender and add to recipient
-            $update_sender_balance = "UPDATE user SET balance=balance-$amount WHERE username='" . $_SESSION['username'] . "'";
-            $update_recipient_balance = "UPDATE user SET balance=balance+$amount WHERE username='$recipient_id'";
+            // Deduct amount from sender and add to recipient using transactions
+            $con->begin_transaction();
+            try {
+                $stmt = $con->prepare("UPDATE user SET balance=balance-? WHERE username=?");
+                $stmt->bind_param("ds", $amount, $_SESSION['username']);
+                $stmt->execute();
 
-            if (mysqli_query($con, $update_sender_balance) && mysqli_query($con, $update_recipient_balance)) {
+                $stmt = $con->prepare("UPDATE user SET balance=balance+? WHERE username=?");
+                $stmt->bind_param("ds", $amount, $recipient_id);
+                $stmt->execute();
+
+                $con->commit();
+
                 // Log transaction in a file
                 $log_message = date('Y-m-d H:i:s') . " - {$sender['username']} transferred Rs. {$amount} to {$recipient['username']}. Comment: {$comment}\n";
                 if (file_put_contents('transaction_log.txt', $log_message, FILE_APPEND) === false) {
@@ -59,13 +86,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $success_messages[] = "Money transferred successfully!";
                 }
-            } else {
+            } catch (Exception $e) {
+                $con->rollback();
                 $error_messages[] = "Error processing transaction.";
             }
         } else {
             $error_messages[] = "Insufficient balance or invalid amount.";
         }
     }
+}
+else{
+// Generate CSRF token
+$csrf_token = bin2hex(random_bytes(32));
+$_SESSION['csrf_token'] = $csrf_token;
 }
 
 mysqli_close($con);
@@ -114,6 +147,7 @@ mysqli_close($con);
 
     <!-- Money Transfer Form -->
     <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
 
         <div class="mb-3">
             <label for="recipient_id" class="form-label">Recipient Username:</label>

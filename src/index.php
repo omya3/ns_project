@@ -3,6 +3,8 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+// Set secure cookie parameters before starting the session
+session_set_cookie_params(0, '/', '', true, true);
 session_start();
 
 // If user is already logged in, redirect them to home.php

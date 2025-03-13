@@ -18,19 +18,21 @@ if (mysqli_connect_errno()) {
 
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitize input
-    $username = mysqli_real_escape_string($con, trim($_POST['username']));
-    $password = trim($_POST['password']);
-
-    // Check if fields are empty
-    if (empty($username) || empty($password)) {
-        header('Location: login.php?status=error&message=' . urlencode('All fields are required.'));
+    
+    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo "Invalid request!";
         exit();
     }
 
-    // Fetch user from database
-    $query = "SELECT * FROM user WHERE username='$username'";
-    $result = mysqli_query($con, $query);
+    // Sanitize input
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    // Fetch user from database using prepared statements
+    $stmt = $con->prepare("SELECT * FROM user WHERE username=?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if (mysqli_num_rows($result) === 1) {
         $user = mysqli_fetch_assoc($result);
