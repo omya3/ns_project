@@ -59,5 +59,6 @@ $_SESSION['csrf_token'] = $csrf_token;
         <!-- Link to Login -->
         <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
     </div>
+    <script src="/js/validate.js"></script>
 </body>
 </html>
