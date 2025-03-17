@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev li
 # Install and enable PHP extensions
 RUN docker-php-ext-install -j$(nproc) pdo_mysql mysqli
 
+# Copy custom php.ini
+COPY custom-php.ini /usr/local/etc/php/conf.d/
+
 # Create the uploads directory
 RUN mkdir -p /var/www/html/uploads
 

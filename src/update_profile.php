@@ -68,35 +68,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Handle profile image upload
-    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] != UPLOAD_ERR_OK) {
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
         $image_name = $_FILES['profile_image']['name'];
         $image_tmp = $_FILES['profile_image']['tmp_name'];
         $image_size = $_FILES['profile_image']['size'];
         $image_type = $_FILES['profile_image']['type'];
 
-        // Validate image type
-        if ($image_type == "image/jpeg" || $image_type == "image/png") {
-            // Move uploaded image to a secure directory
-            $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/' ;
-            $image_path = 'uploads/' . $image_name; // Store relative path
-            if (move_uploaded_file($image_tmp, $upload_dir . $image_name)) {
-                // Update database with relative image path using prepared statements
-                $stmt = $con->prepare("UPDATE user SET profile_image=? WHERE username=?");
-                $stmt->bind_param("ss", $image_path, $_SESSION['username']);
-                if ($stmt->execute()) {
-                    $feedback_message .= "Profile image updated successfully!\n";
-                    $message_type = "success";
+        // Set maximum allowed size
+        $max_allowed_size = 2 * 1024 * 1024; // 2 MB
+
+        // Check if file size exceeds the limit
+        if ($image_size > $max_allowed_size) {
+            $feedback_message .= "The file is too large. Maximum allowed size is 2 MB.\n";
+            $message_type = "danger";
+        } 
+        else{
+            // Validate image type
+            if ($image_type == "image/jpeg" || $image_type == "image/png") {
+                // Move uploaded image to a secure directory
+                $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/' ;
+                $image_path = 'uploads/' . $image_name; // Store relative path
+                if (move_uploaded_file($image_tmp, $upload_dir . $image_name)) {
+                    // Update database with relative image path using prepared statements
+                    $stmt = $con->prepare("UPDATE user SET profile_image=? WHERE username=?");
+                    $stmt->bind_param("ss", $image_path, $_SESSION['username']);
+                    if ($stmt->execute()) {
+                        $feedback_message .= "Profile image updated successfully!\n";
+                        $message_type = "success";
+                    } else {
+                        $feedback_message .= "Error updating profile image: " . $con->error . "\n";
+                        $message_type = "danger";
+                    }
                 } else {
-                    $feedback_message .= "Error updating profile image: " . $con->error . "\n";
+                    $feedback_message .= "Failed to upload image.\n";
                     $message_type = "danger";
                 }
             } else {
-                $feedback_message .= "Failed to upload image.\n";
+                $feedback_message .= "The extension is not JPEG or PNG. \n";
                 $message_type = "danger";
             }
-        } else {
-            $feedback_message .= "Either image size is  too big or the extension is not JPEG or PNG. \n";
-            $message_type = "danger";
         }
     }
 }
