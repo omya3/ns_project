@@ -15,9 +15,9 @@ if (!isset($_SESSION['username'])) {
 
 
 // Database connection
-$DATABASE_HOST = 'localhost';
+$DATABASE_HOST = 'db';
 $DATABASE_USER = 'root';
-$DATABASE_PASS = '';
+$DATABASE_PASS = 'root';
 $DATABASE_NAME = 'time_pass';
 $con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Log transaction in a file
                 $log_message = date('Y-m-d H:i:s') . " - {$sender['username']} transferred Rs. {$amount} to {$recipient['username']}. Comment: {$comment}\n";
-                if (file_put_contents('transaction_log.txt', $log_message, FILE_APPEND) === false) {
+                if (file_put_contents('/var/www/html/logs/transaction_log.txt', $log_message, FILE_APPEND) === false) {
                     $error_messages[] = "Failed to write to transaction log.";
                 } else {
                     $success_messages[] = "Money transferred successfully!";

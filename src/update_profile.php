@@ -17,9 +17,9 @@ if (!isset($_SESSION['username'])) {
 
 
 // Database connection
-$DATABASE_HOST = 'localhost';
+$DATABASE_HOST = 'db';
 $DATABASE_USER = 'root';
-$DATABASE_PASS = '';
+$DATABASE_PASS = 'root';
 $DATABASE_NAME = 'time_pass';
 $con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate image type
         if ($image_type == "image/jpeg" || $image_type == "image/png") {
             // Move uploaded image to a secure directory
-            $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/ns_project/src/uploads/' ;
+            $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/' ;
             $image_path = 'uploads/' . $image_name; // Store relative path
             if (move_uploaded_file($image_tmp, $upload_dir . $image_name)) {
                 // Update database with relative image path using prepared statements

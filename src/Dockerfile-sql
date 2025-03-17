@@ -1,0 +1,7 @@
+FROM mysql:latest
+
+# Copy SQL dump into the image
+COPY /initial_data/dump.sql /docker-entrypoint-initdb.d/
+
+# Ensure the dump is executed during initialization
+RUN chmod +x /docker-entrypoint-initdb.d/dump.sql

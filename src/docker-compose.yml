@@ -1,0 +1,36 @@
+version: '3.3'
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile-web
+    container_name: apache-php
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - "80:80"
+
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile-sql
+    container_name: server_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: time_pass
+      MYSQL_USER: localhost
+      MYSQL_PASSWORD:
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+    restart: always
+    ports:
+      - "8080:80"

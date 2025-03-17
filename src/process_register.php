@@ -9,9 +9,9 @@ session_set_cookie_params(0, '/', '', true, true);
 session_start();
 
 // Database connection
-$DATABASE_HOST = 'localhost';
+$DATABASE_HOST = 'db';
 $DATABASE_USER = 'root';
-$DATABASE_PASS = '';
+$DATABASE_PASS = 'root';
 $DATABASE_NAME = 'time_pass';
 $con = mysqli_connect($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
 
