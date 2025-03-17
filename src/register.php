@@ -33,6 +33,8 @@ $_SESSION['csrf_token'] = $csrf_token;
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+        
+        <div id="password-error" style="color: red;"></div>
 
         <!-- Registration Form -->
         <form method="POST" action="process_register.php">
