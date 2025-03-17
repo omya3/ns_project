@@ -1,4 +1,6 @@
 <?php
+require_once 'logger.php';
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
@@ -9,6 +11,9 @@ if (!isset($_SESSION['username'])) {
     header('Location: login.php');
     exit();
 }
+
+logUserActivity($_SESSION['username'], basename(__FILE__));
+
 
 // Database connection
 $DATABASE_HOST = 'db';

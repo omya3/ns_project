@@ -1,4 +1,6 @@
 <?php
+require_once 'logger.php';
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
@@ -14,6 +16,7 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
+logUserActivity($_SESSION['username'], basename(__FILE__));
 
 
 // Database connection
@@ -65,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Handle profile image upload
-    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == UPLOAD_ERR_OK) {
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] != UPLOAD_ERR_OK) {
         $image_name = $_FILES['profile_image']['name'];
         $image_tmp = $_FILES['profile_image']['tmp_name'];
         $image_size = $_FILES['profile_image']['size'];
@@ -92,15 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = "danger";
             }
         } else {
-            $feedback_message .= "Only JPEG and PNG images are allowed.\n";
+            $feedback_message .= "Either image size is  too big or the extension is not JPEG or PNG. \n";
             $message_type = "danger";
         }
     }
-}
-else{
-// Generate CSRF token
-$csrf_token = bin2hex(random_bytes(32));
-$_SESSION['csrf_token'] = $csrf_token;
 }
 
 mysqli_close($con);
@@ -153,7 +151,7 @@ mysqli_close($con);
                 <input type="file" class="form-control" id="profile_image" name="profile_image">
             </div>
 
-            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+            <input type="hidden" name="csrf_token" value="<?php $csrf_token = bin2hex(random_bytes(32)); $_SESSION['csrf_token'] = $csrf_token; echo $csrf_token; ?>">
 
             <button type="submit" class="btn btn-primary w-100">Update Profile</button>
         </form>

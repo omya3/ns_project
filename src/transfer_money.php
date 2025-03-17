@@ -1,4 +1,6 @@
 <?php
+require_once 'logger.php';
+
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
@@ -13,6 +15,7 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
+logUserActivity($_SESSION['username'], basename(__FILE__));
 
 // Database connection
 $DATABASE_HOST = 'db';
@@ -76,6 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $con->prepare("UPDATE user SET balance=balance+? WHERE username=?");
                 $stmt->bind_param("ds", $amount, $recipient_id);
                 $stmt->execute();
+                
+                // Insert transaction into database
+                $stmt = $con->prepare("INSERT INTO transactions (sender_username, recipient_username, amount, comment) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssds", $_SESSION['username'], $recipient_id, $amount, $comment);
+                $stmt->execute();
 
                 $con->commit();
 
@@ -95,11 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-else{
-// Generate CSRF token
-$csrf_token = bin2hex(random_bytes(32));
-$_SESSION['csrf_token'] = $csrf_token;
-}
+// else{
+// // Generate CSRF token
+// $csrf_token = bin2hex(random_bytes(32));
+// $_SESSION['csrf_token'] = $csrf_token;
+// }
 
 mysqli_close($con);
 ?>
@@ -119,6 +127,7 @@ mysqli_close($con);
     <!-- Navigation Links -->
     <div class="mt-4 d-flex justify-content-between">
         <a href="home.php" class="btn btn-secondary">Go to Home</a>
+        <a href="transfer_history.php" class="btn btn-info mt-3">View Transfer History</a>
         <a href="view_profiles.php" class="btn btn-success mx-2">View Profiles</a>
         <a href="logout.php" class="btn btn-danger">Logout</a>
     </div>
@@ -147,7 +156,8 @@ mysqli_close($con);
 
     <!-- Money Transfer Form -->
     <form method="POST" action="">
-        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+        <input type="hidden" name="csrf_token" value="<?php $csrf_token = bin2hex(random_bytes(32)); $_SESSION['csrf_token'] = $csrf_token;
+        echo $csrf_token; ?>">
 
         <div class="mb-3">
             <label for="recipient_id" class="form-label">Recipient Username:</label>

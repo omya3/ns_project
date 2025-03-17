@@ -1,10 +1,14 @@
 <?php
+
+require_once 'logger.php';
 session_start();
 
 if (!isset($_SESSION['username'])) {
     header('Location: login.php');
     exit();
 }
+
+logUserActivity($_SESSION['username'], basename(__FILE__));
 
 // Database connection
 $DATABASE_HOST = 'db';
