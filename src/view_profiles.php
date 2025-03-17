@@ -26,9 +26,24 @@ if (mysqli_connect_errno()) {
 }
 
 // Fetch all users except the current user
-$query = "SELECT * FROM user WHERE username!='" . $_SESSION['username'] . "'";
-$result = mysqli_query($con, $query);
+$query = "SELECT * FROM user WHERE username != ?";
+$stmt = $con->prepare($query);
+$stmt->bind_param("s", $_SESSION['username']);
+$stmt->execute();
+$result = $stmt->get_result();
 
+// Handle search functionality
+$search_result = null;
+if (isset($_GET['search'])) {
+    $search_query = "SELECT * FROM user WHERE username LIKE ?";
+    $search_term = "%" . $_GET['search'] . "%";
+    $stmt = $con->prepare($search_query);
+    $stmt->bind_param("s", $search_term);
+    $stmt->execute();
+    $search_result = $stmt->get_result();
+}
+
+// Close connection at the end of the script
 mysqli_close($con);
 ?>
 
@@ -60,38 +75,19 @@ mysqli_close($con);
             </div>
         </form>
 
-        <!-- Display profiles -->
-        <div class="row">
-            <?php while ($user = mysqli_fetch_assoc($result)): ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                    <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
-                    <div class="card-body">
-                            <h5 class="card-title"><?php echo $user['username']; ?></h5>
-                            <p class="card-text"><?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ') ; ?></p>
-                            <a href="view_profile.php?username=<?php echo $user['username']; ?>" class="btn btn-primary">View Profile</a>
-                        </div>
-                    </div>
-                </div>
-            <?php endwhile; ?>
-        </div>
-
         <?php if (isset($_GET['search'])): ?>
             <!-- Display search results -->
-            <?php
-            $search_query = "SELECT * FROM user WHERE username LIKE '%" . $_GET['search'] . "%' ";
-            $search_result = mysqli_query($con, $search_query);
-            if (mysqli_num_rows($search_result) > 0): ?>
+            <?php if ($search_result && $search_result->num_rows > 0): ?>
                 <h3>Search Results:</h3>
                 <div class="row">
-                    <?php while ($search_user = mysqli_fetch_assoc($search_result)): ?>
+                    <?php while ($search_user = $search_result->fetch_assoc()): ?>
                         <div class="col-md-4 mb-4">
                             <div class="card">
-                            <img src="<?php echo !empty($user['profile_image']) ?  htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
-                            <div class="card-body">
-                                    <h5 class="card-title"><?php echo $search_user['username']; ?></h5>
-                                    <p class="card-text"><?php  echo htmlspecialchars($user['biography'] ?? 'No biography available. ') ; ?></p>
-                                    <a href="view_profile.php?username=<?php echo $search_user['username']; ?>" class="btn btn-primary">View Profile</a>
+                                <img src="<?php echo !empty($search_user['profile_image']) ? htmlspecialchars($search_user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($search_user['username']); ?></h5>
+                                    <p class="card-text"><?php echo htmlspecialchars($search_user['biography'] ?? 'No biography available.'); ?></p>
+                                    <a href="view_profile.php?username=<?php echo htmlspecialchars($search_user['username']); ?>" class="btn btn-primary">View Profile</a>
                                 </div>
                             </div>
                         </div>
@@ -101,6 +97,27 @@ mysqli_close($con);
                 <p>No results found.</p>
             <?php endif; ?>
         <?php endif; ?>
+        
+        <!-- Display profiles -->
+        <div class="row">
+            <?php while ($user = $result->fetch_assoc()): ?>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="<?php echo !empty($user['profile_image']) ? htmlspecialchars($user['profile_image']) : './images/default_profile_image.jpg'; ?>" class="card-img-top img-fluid img-thumbnail" alt="Profile Image" >
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($user['username']); ?></h5>
+                            <p class="card-text"><?php echo htmlspecialchars($user['biography'] ?? 'No biography available.'); ?></p>
+                            <a href="view_profile.php?username=<?php echo htmlspecialchars($user['username']); ?>" class="btn btn-primary">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+        </div>
+
+        
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
