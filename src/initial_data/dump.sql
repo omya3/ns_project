@@ -67,7 +67,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('aditya','adi@gmail.com','$2y$12$zQHJ58IorHJ6gOORQT4IJOb/qPp0IKpks5qQJidwtaRtEOein2fsG',_binary 'uploads/captainamerica.jpg','hey aditya her',130.00),('ankit','ankit@gmail.com','$2y$12$RLBFjIvfxv2fFpUHZ7fn2eCupvY59rY3Q2fEBFQ7sMNYKKFZ1OKq2',_binary 'uploads/captainamerica.jpg','',90.00),('om','om@gmail.com','$2y$12$2bUKq0hBmjFZCAXWPqb6e.BLYc2sLJLEsTgyeSSk5MUMrTzUK76hK',_binary 'uploads/WhatsApp Image 2024-09-02 at 6.22.30 PM.jpeg','Hey im omkar !!!',80.00);
+INSERT INTO `user` VALUES ('aditya','adi@gmail.com','$2y$12$zQHJ58IorHJ6gOORQT4IJOb/qPp0IKpks5qQJidwtaRtEOein2fsG',_binary 'uploads/captainamerica.jpg','hey aditya her',130.00),('ankit','ankit@gmail.com','$2y$12$RLBFjIvfxv2fFpUHZ7fn2eCupvY59rY3Q2fEBFQ7sMNYKKFZ1OKq2',_binary 'uploads/captainamerica.jpg','',90.00),('om','om@gmail.com','$2y$12$2bUKq0hBmjFZCAXWPqb6e.BLYc2sLJLEsTgyeSSk5MUMrTzUK76hK',_binary 'uploads/WhatsApp Image 2024-09-02 at 6.22.30 PM.jpeg','Hey im omkar !!!',80.00),('raj','raj@gmail.com','$2y$12$7K7nxi0EMRNarWyQKs8HeO/MVOnd9C9LdC0NND17J3xJvuhIxoYOa',NULL,NULL,100.00),('ram','ram@gmail.com','$2y$12$Otr7CDDQwK5aXl4ao2hctOVscphTmZfWoO1fnCamkE4gHX5x5T/n.',NULL,NULL,100.00);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -85,7 +85,7 @@ CREATE TABLE `user_activity_logs` (
   `timestamp` datetime DEFAULT CURRENT_TIMESTAMP,
   `client_ip` varchar(45) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -94,6 +94,7 @@ CREATE TABLE `user_activity_logs` (
 
 LOCK TABLES `user_activity_logs` WRITE;
 /*!40000 ALTER TABLE `user_activity_logs` DISABLE KEYS */;
+INSERT INTO `user_activity_logs` VALUES (1,'om','process_login.php','2025-03-17 12:58:51','172.19.0.1'),(2,'om','home.php','2025-03-17 12:58:51','172.19.0.1'),(3,'om','view_profiles.php','2025-03-17 12:58:53','172.19.0.1'),(4,'om','view_profiles.php','2025-03-17 12:58:57','172.19.0.1'),(5,'om','view_profiles.php','2025-03-17 12:59:02','172.19.0.1'),(6,'om','logout.php','2025-03-17 12:59:56','172.19.0.1'),(7,'raj','process_login.php','2025-03-17 13:01:04','172.19.0.1'),(8,'raj','home.php','2025-03-17 13:01:04','172.19.0.1'),(9,'raj','view_profiles.php','2025-03-17 13:01:11','172.19.0.1'),(10,'raj','view_profiles.php','2025-03-17 13:01:18','172.19.0.1'),(11,'raj','view_profiles.php','2025-03-17 13:01:25','172.19.0.1');
 /*!40000 ALTER TABLE `user_activity_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -106,4 +107,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-17 12:32:34
+-- Dump completed on 2025-03-17 13:01:51
