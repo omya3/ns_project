@@ -33,9 +33,11 @@ $_SESSION['csrf_token'] = $csrf_token;
                 </div>
             <?php endif; ?>
         <?php endif; ?>
+        
+        <div id="password-error" style="color: red;"></div>
 
         <!-- Registration Form -->
-        <form method="POST" action="process_register.php">
+        <form method="POST" id= "register-form" action="process_register.php">
             <div class="mb-3">
                 <label for="username" class="form-label">Username:</label>
                 <input type="text" class="form-control" id="username" name="username" required>
@@ -59,5 +61,6 @@ $_SESSION['csrf_token'] = $csrf_token;
         <!-- Link to Login -->
         <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
     </div>
+    <script src="/js/validate.js"></script>
 </body>
 </html>
