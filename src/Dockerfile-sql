@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mariadb:latest
 
 # Copy SQL dump into the image
 COPY /initial_data/dump.sql /docker-entrypoint-initdb.d/

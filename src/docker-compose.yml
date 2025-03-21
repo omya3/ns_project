@@ -14,7 +14,6 @@ services:
       - "443:443"
 
   db:
-    image: sailoromkar1/src-db
     build:
       context: .
       dockerfile: Dockerfile-sql
