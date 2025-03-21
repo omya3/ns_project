@@ -1,0 +1,44 @@
+FROM php:8-apache
+
+# Set the working directory in the container
+WORKDIR /var/www/html
+
+# Copy the current directory contents into the container at /var/www/html
+COPY . /var/www/html
+
+# Install any needed packages specified in composer.json
+RUN apt-get update && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev
+
+# Install and enable PHP extensions
+RUN docker-php-ext-install -j$(nproc) pdo_mysql mysqli
+
+# Copy custom php.ini
+COPY custom-php.ini /usr/local/etc/php/conf.d/
+
+# Create the uploads directory
+RUN mkdir -p /var/www/html/uploads
+
+# Set permissions for the uploads directory
+RUN chown -R www-data:www-data /var/www/html/uploads
+RUN chmod -R 755 /var/www/html/uploads
+
+# Create the logs directory
+RUN mkdir -p /var/www/html/logs
+
+# Set permissions for the logs directory
+RUN chown -R www-data:www-data /var/www/html/logs
+RUN chmod -R 755 /var/www/html/logs
+
+# Expose port 80 to the host, so we can access it from the outside
+EXPOSE 80
+
+# Configure environment variables
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
+ENV APACHE_RUN_DIR=/var/run/apache2
+ENV APACHE_LOG_DIR=/var/log/apache2
+ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
+ENV APACHE_RUN_USER=www-data
+ENV APACHE_RUN_GROUP=www-data
+
+# Run command when the container launches
+CMD ["apache2-foreground"]

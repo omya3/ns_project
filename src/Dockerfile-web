@@ -1,13 +1,16 @@
 FROM php:8-apache
 
-# Set the working directory in the container
+# Set the working directory
 WORKDIR /var/www/html
 
-# Copy the current directory contents into the container at /var/www/html
+# Copy the application code
 COPY . /var/www/html
 
-# Install any needed packages specified in composer.json
-RUN apt-get update && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev
+# Install required packages including SSL support
+RUN apt-get update && apt-get install -y \
+    libfreetype6-dev libjpeg62-turbo-dev libmcrypt-dev libpng-dev \
+    openssl ssl-cert \
+    && a2enmod ssl rewrite
 
 # Install and enable PHP extensions
 RUN docker-php-ext-install -j$(nproc) pdo_mysql mysqli
@@ -15,30 +18,52 @@ RUN docker-php-ext-install -j$(nproc) pdo_mysql mysqli
 # Copy custom php.ini
 COPY custom-php.ini /usr/local/etc/php/conf.d/
 
-# Create the uploads directory
-RUN mkdir -p /var/www/html/uploads
+# Copy SSL certificates into the container (Ensure you have these files in your project directory)
+COPY ssl/cert.pem /etc/ssl/certs/cert.pem
+COPY ssl/key.pem /etc/ssl/private/key.pem
 
-# Set permissions for the uploads directory
-RUN chown -R www-data:www-data /var/www/html/uploads
-RUN chmod -R 755 /var/www/html/uploads
+# Set proper permissions for SSL files
+RUN chmod 600 /etc/ssl/certs/cert.pem /etc/ssl/private/key.pem
 
-# Create the logs directory
-RUN mkdir -p /var/www/html/logs
+# Add Apache SSL configuration directly inside the Dockerfile
+RUN echo '<VirtualHost *:443>\n\
+    ServerAdmin webmaster@localhost\n\
+    DocumentRoot /var/www/html\n\
+    SSLEngine on\n\
+    SSLCertificateFile /etc/ssl/certs/cert.pem\n\
+    SSLCertificateKeyFile /etc/ssl/private/key.pem\n\
+    <Directory /var/www/html>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>\n\
+\n\
+<VirtualHost *:80>\n\
+    ServerAdmin webmaster@localhost\n\
+    DocumentRoot /var/www/html\n\
+    RewriteEngine On\n\
+    RewriteCond %{HTTPS} !=on\n\
+    RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R=301,L]\n\
+    <Directory /var/www/html>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Set permissions for the logs directory
-RUN chown -R www-data:www-data /var/www/html/logs
-RUN chmod -R 755 /var/www/html/logs
+# Enable SSL site configuration
+RUN a2ensite 000-default.conf
 
-# Expose port 80 to the host, so we can access it from the outside
-EXPOSE 80
+# Create necessary directories with proper permissions
+RUN mkdir -p /var/www/html/uploads /var/www/html/logs
+RUN chown -R www-data:www-data /var/www/html/uploads /var/www/html/logs
+RUN chmod -R 755 /var/www/html/uploads /var/www/html/logs
 
-# Configure environment variables
-ENV APACHE_DOCUMENT_ROOT=/var/www/html
-ENV APACHE_RUN_DIR=/var/run/apache2
-ENV APACHE_LOG_DIR=/var/log/apache2
-ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
-ENV APACHE_RUN_USER=www-data
-ENV APACHE_RUN_GROUP=www-data
+# Expose both HTTP and HTTPS ports
+EXPOSE 80 443
 
-# Run command when the container launches
+# Start Apache in foreground
 CMD ["apache2-foreground"]

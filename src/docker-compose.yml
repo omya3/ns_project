@@ -1,6 +1,7 @@
 version: '3.3'
 services:
   web:
+    image: sailoromkar1/src-web
     build: 
       context: .
       dockerfile: Dockerfile-web
@@ -10,8 +11,10 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
 
   db:
+    image: sailoromkar1/src-db
     build:
       context: .
       dockerfile: Dockerfile-sql
